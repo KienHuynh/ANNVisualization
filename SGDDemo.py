@@ -241,6 +241,7 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_epoch = config['num_epoch']
     num_train_per_class = config['num_train_per_class']
     num_hidden_node = config['num_hidden_node']
+    display_rate = config['display_rate']
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
@@ -256,6 +257,7 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_train_sample = 1
     pylab.ion()
     pylab.show()
+    all_cost = []
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
@@ -273,8 +275,15 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         W2 = W2 - dJ_dW2 * lr
         b2 = b2 - dJ_db2 * lr
 
-        if (i % 30 == 0):
+        all_cost.append(J)
+
+        if (i % display_rate == 0):
+
             pylab.clf()
+            f = plt.figure(2, figsize=(16,8))
+            f.suptitle('Normal SGD with %d hidden nodes, learning rate = %.4g,  %d epoch\n cost = %.4g' % (num_hidden_node, lr, i, J),
+                       fontsize=15)
+            plt.subplot(1, 2, 1)
             [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
@@ -283,9 +292,11 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
                            train_X[num_train_per_class * 2:, :],
                            2)
 
-            f = plt.figure(2)
-            f.suptitle('Normal SGD with %d hidden nodes, %d epoch' % (num_hidden_node, i), fontsize=15)
-
+            plt.subplot(1,2,2)
+            plt.plot(all_cost, 'b')
+            plt.xlabel('Epoch')
+            plt.ylabel('Cost')
+            f.savefig('giffolder/SGD/SGD_%04d.png' % i, bbox_inches='tight')
             pylab.draw()
 
         bp = 1
@@ -303,6 +314,8 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
     num_train_per_class = config['num_train_per_class']
     num_hidden_node = config['num_hidden_node']
     momentum_rate = config['momentum']
+    display_rate = config['display_rate']
+
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
@@ -324,6 +337,7 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
     num_train_sample = 1
     pylab.ion()
     pylab.show()
+    all_cost = []
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
@@ -347,8 +361,15 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
         W2 = W2 - W2m
         b2 = b2 - b2m
 
-        if (i % 30 == 0):
+        all_cost.append(J)
+
+        if (i % display_rate == 0):
             pylab.clf()
+            f = plt.figure(2, figsize=(16, 8))
+            f.suptitle('SGD + momentum with %d hidden nodes, \n learning rate = %.4g, momentum rate = %.4g, %d epoch, cost = %.4g' %
+                       (num_hidden_node, lr, momentum_rate, i, J), fontsize=15)
+
+            plt.subplot(1, 2, 1)
             [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
@@ -357,9 +378,11 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
                            train_X[num_train_per_class * 2:, :],
                            2)
 
-            f = plt.figure(2)
-            f.suptitle('SGD + momentum with %d hidden nodes, %d epoch' % (num_hidden_node, i), fontsize=15)
-
+            plt.subplot(1, 2, 2)
+            plt.plot(all_cost, 'b')
+            plt.xlabel('Epoch')
+            plt.ylabel('Cost')
+            f.savefig('giffolder/SGDM/SGDM_%04d.png' % i, bbox_inches='tight')
             pylab.draw()
 
         bp = 1
@@ -377,6 +400,8 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_train_per_class = config['num_train_per_class']
     num_hidden_node = config['num_hidden_node']
     epsilon = config['ada_epsilon']
+    display_rate = config['display_rate']
+
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
@@ -398,6 +423,7 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_train_sample = 1
     pylab.ion()
     pylab.show()
+    all_cost = []
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
@@ -421,8 +447,15 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         W2 = W2 - dJ_dW2 * lr / np.sqrt(W2g + epsilon)
         b2 = b2 - dJ_db2 * lr / np.sqrt(b2g + epsilon)
 
-        if (i % 30 == 0):
+        all_cost.append(J)
+
+        if (i % display_rate == 0):
             pylab.clf()
+            f = plt.figure(2, figsize=(16, 8))
+            f.suptitle('Adagrad with %d hidden nodes, \n learning rate = %.4g, epsilon = %.4g, %d epoch, cost = %.4g' %
+                       (num_hidden_node, lr, epsilon, i, J), fontsize=15)
+
+            plt.subplot(1, 2, 1)
             [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
@@ -431,9 +464,11 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
                            train_X[num_train_per_class * 2:, :],
                            2)
 
-            f = plt.figure(2)
-            f.suptitle('Adagrad with %d hidden nodes, %d epoch' % (num_hidden_node, i), fontsize=15)
-
+            plt.subplot(1, 2, 2)
+            plt.plot(all_cost, 'b')
+            plt.xlabel('Epoch')
+            plt.ylabel('Cost')
+            f.savefig('giffolder/Adagrad/Adadgrad_%04d.png' % i, bbox_inches='tight')
             pylab.draw()
 
         bp = 1
