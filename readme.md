@@ -1,4 +1,8 @@
-This is a project dedicated to visualize ANN and its related processes
+Artificial neural network visualization
+=======================================
+
+This is a project dedicated to visualize ANN and its related processes. It is used for studying purpose, not for real applications.
+---------------------------------------
 
 Main file is ClassifyNN.py
 
