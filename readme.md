@@ -3,9 +3,9 @@ Artificial neural network visualization
 
 This is a project dedicated to visualize ANN and its related processes. It is used for studying purpose, not for real applications.
 
-![Alt text](img/sgd.gif?raw=true)
-![Alt text](img/sgdm.gif?raw=true)
-![Alt text](img/adagrad.gif?raw=true)
+![](img/sgd.gif?raw=true)
+![](img/sgdm.gif?raw=true)
+![](img/adagrad.gif?raw=true)
 
 Main file is ClassifyNN.py
 
