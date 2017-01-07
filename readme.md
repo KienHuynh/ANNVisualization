@@ -2,9 +2,11 @@ Artificial neural network visualization
 =======================================
 
 This is a project dedicated to visualize ANN and its related processes. It is used for studying purpose, not for real applications.
-![Alt text](img/sgd.gif?raw=true)
-![Alt text](img/sgdm.gif?raw=true)
-![Alt text](img/adagrad.gif?raw=true)
+
+![Alt text](img/sgd.gif?raw=false)
+![Alt text](img/sgdm.gif?raw=false)
+![Alt text](img/adagrad.gif?raw=false)
+
 Main file is ClassifyNN.py
 
 Each SGD demo process is placed in the SGDDemo.py
