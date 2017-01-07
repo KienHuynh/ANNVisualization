@@ -103,13 +103,14 @@ if __name__ == '__main__':
 
     config = {}
     config['num_epoch'] = 1000
-    config['lr'] = 0.2
+    config['lr'] = 0.8
     config['num_train_per_class'] = num_train
-    config['num_hidden_node'] = 100
-    BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    config['num_hidden_node'] = 24
+    config['display_rate'] = 10 # epochs per display time
+    # BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    # BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
     # BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
