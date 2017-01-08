@@ -2,13 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pylab
 from BasicFunction import *
+from Utility import *
+import os
+
 rng = np.random.RandomState(1311)
 def visualize_data(data1, data2, data3, figure_num):
+
+    if (data1.shape[0] > 1000):
+        point_size = 10
+    else:
+        point_size = 50
+
     plt.figure(figure_num)
     plt.axis('equal')
-    plt.scatter(data1[:,0], data1[:,1], 10, 'r')
-    plt.scatter(data2[:, 0], data2[:, 1], 10, 'g')
-    plt.scatter(data3[:, 0], data3[:, 1], 10, 'b')
+    plt.scatter(data1[:,0], data1[:,1], point_size, 'r')
+    plt.scatter(data2[:, 0], data2[:, 1], point_size, 'g')
+    plt.scatter(data3[:, 0], data3[:, 1], point_size, 'b')
     bp = 1
 
 def numerical_grad_check(X, Y, W1, b1, W2, b2, grad):
@@ -148,20 +157,31 @@ def numerical_grad_check(X, Y, W1, b1, W2, b2, grad):
     print ("Difference in gradient: %f \n" % (grad_diff))
 
 
-def find_decision_boundary(X, Y, W1, b1, W2, b2):
+def find_decision_boundary(X, Y, W1, b1, W2, b2, config):
     num_fake_data = 150
     num_train_sample = X.shape[0]
     num_feature = X.shape[1]
     num_hidden_node = W1.shape[1]
     num_class = Y.shape[1]
 
+    demo_type = config['demo_type']
+
+    min_X1 = np.min(X[:, 0]) - 0.1
+    max_X1 = np.max(X[:, 0]) + 0.1
+    min_X2 = np.min(X[:, 1]) - 0.1
+    max_X2 = np.max(X[:, 1]) + 0.1
+
     # Create grid data
-    X1 = np.linspace(-3, 3, num_fake_data)
-    X2 = np.linspace(-3, 3, num_fake_data)
+    X1 = np.linspace(min_X1, max_X1, num_fake_data)
+    X2 = np.linspace(min_X2, max_X2, num_fake_data)
     xv, yv = np.meshgrid(X1, X2)
     xv = xv.flatten().astype(np.float32).reshape((num_fake_data ** 2, 1))
     yv = yv.flatten().astype(np.float32).reshape((num_fake_data ** 2, 1))
     X = np.concatenate((xv, yv), 1)
+    if (demo_type == "classifynnkernel"):
+        kernel_poly_order = config['kernel_poly_order']
+        X = kernel_preprocess(X, kernel_poly_order)
+
     del xv
     del yv
 
@@ -174,9 +194,9 @@ def find_decision_boundary(X, Y, W1, b1, W2, b2):
     grid1 = X[pred == 1, :]
     grid2 = X[pred == 2, :]
 
-    grid0 = grid0.reshape((grid0.shape[0], 2))
-    grid1 = grid1.reshape((grid1.shape[0], 2))
-    grid2 = grid2.reshape((grid2.shape[0], 2))
+    grid0 = grid0.reshape((grid0.shape[0], num_feature))
+    grid1 = grid1.reshape((grid1.shape[0], num_feature))
+    grid2 = grid2.reshape((grid2.shape[0], num_feature))
 
     return (grid0, grid1, grid2)
 
@@ -229,6 +249,68 @@ def get_grad(X, Y, W1, b1, W2, b2):
 
     return (dJ_dW1, dJ_db1, dJ_dW2, dJ_db2)
 
+def train_draw(X, Y, W1, b1, W2, b2, config, all_cost, i, J):
+    # Display the training process
+
+    num_hidden_node = config['num_hidden_node']
+    num_train_per_class = config['num_train_per_class']
+    train_method = config['train_method']
+    save_img = config['save_img']
+    demo_type = config['demo_type']
+
+    lr = config['lr']
+
+    pylab.clf()
+    f = plt.figure(2, figsize=(16, 8))
+
+    title = '%s with %d hidden nodes, lr = %.4g, %d epoch, cost = %.4g' % (train_method, num_hidden_node, lr, i, J)
+
+    if (train_method == 'sgdm'):
+        momentum_rate = config['momentum']
+        title += '\nmomentum rate = %.4g' % momentum_rate
+        f.suptitle(title, fontsize=15)
+
+    elif (train_method == 'ada'):
+        epsilon = config['ada_epsilon']
+        title += '\nepsilon = %.4g' % epsilon
+
+    elif (train_method == 'adam'):
+        beta1 = config['adam_beta1']
+        beta2 = config['adam_beta2']
+        epsilon = config['ada_epsilon']
+        title += '\nepsilon = %.4g, beta1 = %.4g, beta2 = %.4g' % (epsilon, beta1, beta2)
+
+    plt.subplot(1, 2, 1)
+    [grid1, grid2, grid3] = find_decision_boundary(X, Y, W1, b1, W2, b2, config)
+
+    if (demo_type == "classifynnkernel"):
+        grid1 = grid1[:, 0:2]
+        grid2 = grid2[:, 0:2]
+        grid3 = grid3[:, 0:2]
+        X = X[:,0:2]
+        title += ' kernel_poly_order = %d' % config['kernel_poly_order']
+
+    visualize_decision_grid(grid1, grid2, grid3, 2)
+
+    visualize_data(X[0:num_train_per_class, :],
+                   X[num_train_per_class:num_train_per_class * 2, :],
+                   X[num_train_per_class * 2:, :],
+                   2)
+
+    f.suptitle(title, fontsize=15)
+    plt.subplot(1, 2, 2)
+    plt.plot(all_cost, 'b')
+    plt.xlabel('Epoch')
+    plt.ylabel('Cost')
+
+    if (save_img):
+        save_img_path = 'giffolder/%s/'%train_method
+        if not os.path.exists(save_img_path):
+            os.makedirs(save_img_path)
+
+        f.savefig(save_img_path + ('/%04d.png' % i), bbox_inches='tight')
+
+    pylab.draw()
 
 def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
@@ -242,12 +324,14 @@ def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_train_per_class = config['num_train_per_class']
     num_hidden_node = config['num_hidden_node']
     display_rate = config['display_rate']
+    activation_function_type = config['activation_function']
+
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
 
     # Create a weight matrix of shape (2, num_hidden_node)
-    W1 = rng.randn(2, num_hidden_node)
+    W1 = rng.randn(num_feature, num_hidden_node)
     b1 = rng.randn(1, num_hidden_node)
 
     # Create output weight
@@ -261,7 +345,7 @@ def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
-        z1 = sigmoid(a1)
+        z1 = activation_function(a1, activation_function_type)
         a2 = np.dot(z1, W2) + b2
         J = softmax_log_loss(a2, train_Y)
 
@@ -278,26 +362,8 @@ def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         all_cost.append(J)
 
         if (i % display_rate == 0):
-
-            pylab.clf()
-            f = plt.figure(2, figsize=(16,8))
-            f.suptitle('Normal SGD with %d hidden nodes, learning rate = %.4g,  %d epoch\n cost = %.4g' % (num_hidden_node, lr, i, J),
-                       fontsize=15)
-            plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
-            visualize_decision_grid(grid1, grid2, grid3, 2)
-
-            visualize_data(train_X[0:num_train_per_class, :],
-                           train_X[num_train_per_class:num_train_per_class * 2, :],
-                           train_X[num_train_per_class * 2:, :],
-                           2)
-
-            plt.subplot(1,2,2)
-            plt.plot(all_cost, 'b')
-            plt.xlabel('Epoch')
-            plt.ylabel('Cost')
-            f.savefig('giffolder/SGD/SGD_%04d.png' % i, bbox_inches='tight')
-            pylab.draw()
+            config['train_method'] = 'sgd'
+            train_draw(train_X, train_Y, W1, b1, W2, b2, config, all_cost, i, J)
 
         bp = 1
 
@@ -315,13 +381,14 @@ def basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, conf
     num_hidden_node = config['num_hidden_node']
     momentum_rate = config['momentum']
     display_rate = config['display_rate']
+    activation_function_type = config['activation_function']
 
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
 
     # Create a weight matrix of shape (2, num_hidden_node)
-    W1 = rng.randn(2, num_hidden_node)
+    W1 = rng.randn(num_feature, num_hidden_node)
     b1 = rng.randn(1, num_hidden_node)
 
     # Create output weight
@@ -341,7 +408,7 @@ def basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, conf
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
-        z1 = sigmoid(a1)
+        z1 = activation_function(a1, activation_function_type)
         a2 = np.dot(z1, W2) + b2
         J = softmax_log_loss(a2, train_Y)
 
@@ -364,26 +431,8 @@ def basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, conf
         all_cost.append(J)
 
         if (i % display_rate == 0):
-            pylab.clf()
-            f = plt.figure(2, figsize=(16, 8))
-            f.suptitle('SGD + momentum with %d hidden nodes, \n learning rate = %.4g, momentum rate = %.4g, %d epoch, cost = %.4g' %
-                       (num_hidden_node, lr, momentum_rate, i, J), fontsize=15)
-
-            plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
-            visualize_decision_grid(grid1, grid2, grid3, 2)
-
-            visualize_data(train_X[0:num_train_per_class, :],
-                           train_X[num_train_per_class:num_train_per_class * 2, :],
-                           train_X[num_train_per_class * 2:, :],
-                           2)
-
-            plt.subplot(1, 2, 2)
-            plt.plot(all_cost, 'b')
-            plt.xlabel('Epoch')
-            plt.ylabel('Cost')
-            f.savefig('giffolder/SGDM/SGDM_%04d.png' % i, bbox_inches='tight')
-            pylab.draw()
+            config['train_method'] = 'sgdm'
+            train_draw(train_X, train_Y, W1, b1, W2, b2, config, all_cost, i, J)
 
         bp = 1
 
@@ -401,13 +450,14 @@ def basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_hidden_node = config['num_hidden_node']
     epsilon = config['ada_epsilon']
     display_rate = config['display_rate']
+    activation_function_type = config['activation_function']
 
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
 
     # Create a weight matrix of shape (2, num_hidden_node)
-    W1 = rng.randn(2, num_hidden_node)
+    W1 = rng.randn(num_feature, num_hidden_node)
     b1 = rng.randn(1, num_hidden_node)
 
     # Create output weight
@@ -427,7 +477,7 @@ def basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
-        z1 = sigmoid(a1)
+        z1 = activation_function(a1, activation_function_type)
         a2 = np.dot(z1, W2) + b2
         J = softmax_log_loss(a2, train_Y)
 
@@ -450,30 +500,12 @@ def basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         all_cost.append(J)
 
         if (i % display_rate == 0):
-            pylab.clf()
-            f = plt.figure(2, figsize=(16, 8))
-            f.suptitle('Adagrad with %d hidden nodes, \n learning rate = %.4g, epsilon = %.4g, %d epoch, cost = %.4g' %
-                       (num_hidden_node, lr, epsilon, i, J), fontsize=15)
-
-            plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
-            visualize_decision_grid(grid1, grid2, grid3, 2)
-
-            visualize_data(train_X[0:num_train_per_class, :],
-                           train_X[num_train_per_class:num_train_per_class * 2, :],
-                           train_X[num_train_per_class * 2:, :],
-                           2)
-
-            plt.subplot(1, 2, 2)
-            plt.plot(all_cost, 'b')
-            plt.xlabel('Epoch')
-            plt.ylabel('Cost')
-            f.savefig('giffolder/Adagrad/Adadgrad_%04d.png' % i, bbox_inches='tight')
-            pylab.draw()
+            config['train_method'] = 'ada'
+            train_draw(train_X, train_Y, W1, b1, W2, b2, config, all_cost, i, J)
 
         bp = 1
 
-def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
+def basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
     # Input kernel: linear
     # Num hidden layer: 1
@@ -487,13 +519,15 @@ def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     beta1 = config['adam_beta1']
     beta2 = config['adam_beta2']
     epsilon = config['ada_epsilon']
+    display_rate = config['display_rate']
+    activation_function_type = config['activation_function']
+
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
-    display_rate = config['display_rate']
 
     # Create a weight matrix of shape (2, num_hidden_node)
-    W1 = rng.randn(2, num_hidden_node)
+    W1 = rng.randn(num_feature, num_hidden_node)
     b1 = rng.randn(1, num_hidden_node)
 
     # Create output weight
@@ -518,7 +552,7 @@ def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
-        z1 = sigmoid(a1)
+        z1 = activation_function(a1, activation_function_type)
         a2 = np.dot(z1, W2) + b2
         J = softmax_log_loss(a2, train_Y)
 
@@ -557,25 +591,8 @@ def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         all_cost.append(J)
 
         if (i % display_rate == 0):
-            pylab.clf()
-            f = plt.figure(2, figsize=(16, 8))
-            f.suptitle('Adam with %d hidden nodes, learning rate = %.4g, \n beta1 = %.4g, beta2 = %.4g, epsilon = %.4g, %d epoch, cost = %.4g' %
-                       (num_hidden_node, lr, beta1, beta2, epsilon, i, J), fontsize=15)
+            config['train_method'] = 'adam'
+            train_draw(train_X, train_Y, W1, b1, W2, b2, config, all_cost, i, J)
 
-            plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
-            visualize_decision_grid(grid1, grid2, grid3, 2)
-
-            visualize_data(train_X[0:num_train_per_class, :],
-                           train_X[num_train_per_class:num_train_per_class * 2, :],
-                           train_X[num_train_per_class * 2:, :],
-                           2)
-
-            plt.subplot(1, 2, 2)
-            plt.plot(all_cost, 'b')
-            plt.xlabel('Epoch')
-            plt.ylabel('Cost')
-            f.savefig('giffolder/Adam/Adam_%04d.png' % i, bbox_inches='tight')
-            pylab.draw()
 
         bp = 1
