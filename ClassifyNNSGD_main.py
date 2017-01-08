@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pylab
 import time
 import matplotlib.text as plttext
-from SGDDemo import *
+from SGDClassifyNNDemo import *
 # This guy is global
 
 # Create a 2D dataset with 3 labels

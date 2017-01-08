@@ -16,6 +16,24 @@ def softmax(X):
     sum_e = np.sum(e, 1, keepdims=True)
     return e / sum_e
 
+def relu(X, bp = False):
+    result = X
+    if (not bp):
+        result = X
+        result[X < 0] = 0
+    else:
+        result[X > 0] = 1
+        result[X <= 0] = 0
+    return result
+
+def activation_function(X, type, bp = False):
+    if (type == "sigmoid"):
+        return sigmoid(X, bp)
+    elif (type == "relu"):
+        return relu(X, bp)
+    else:
+        raise ValueError("Activation function not recognized")
+
 def softmax_log_loss(X, Y, bp=False):
     """
     Calculate softmax log loss (aka categorical cross entropy after softmax)
@@ -47,3 +65,4 @@ def softmax_log_loss(X, Y, bp=False):
         dFdX = dFdX / n
         # dFdX = (dFdX - 1) / n
         return dFdX
+

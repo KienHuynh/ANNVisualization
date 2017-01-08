@@ -11,7 +11,7 @@ def visualize_data(data1, data2, data3, figure_num):
     plt.scatter(data3[:, 0], data3[:, 1], 10, 'b')
     bp = 1
 
-def NumericalGradientCheck(X, Y, W1, b1, W2, b2, grad):
+def numerical_grad_check(X, Y, W1, b1, W2, b2, grad):
     delta = 0.000005
 
     # Check dJ_da2
@@ -148,7 +148,7 @@ def NumericalGradientCheck(X, Y, W1, b1, W2, b2, grad):
     print ("Difference in gradient: %f \n" % (grad_diff))
 
 
-def FindDecisionBoundary(X, Y, W1, b1, W2, b2):
+def find_decision_boundary(X, Y, W1, b1, W2, b2):
     num_fake_data = 150
     num_train_sample = X.shape[0]
     num_feature = X.shape[1]
@@ -190,7 +190,7 @@ def visualize_decision_grid(data1, data2, data3, figure_num):
     bp = 1
 
 
-def GetGrad(X, Y, W1, b1, W2, b2):
+def get_grad(X, Y, W1, b1, W2, b2):
     num_train_sample = X.shape[0]
     num_feature = X.shape[1]
     num_hidden_node = W1.shape[1]
@@ -230,7 +230,7 @@ def GetGrad(X, Y, W1, b1, W2, b2):
     return (dJ_dW1, dJ_db1, dJ_dW2, dJ_db2)
 
 
-def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
+def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
     # Input kernel: linear
     # Num hidden layer: 1
@@ -268,7 +268,7 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = GetGrad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
         W1 = W1 - dJ_dW1 * lr
         b1 = b1 - dJ_db1 * lr
@@ -284,7 +284,7 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
             f.suptitle('Normal SGD with %d hidden nodes, learning rate = %.4g,  %d epoch\n cost = %.4g' % (num_hidden_node, lr, i, J),
                        fontsize=15)
             plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
+            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
             visualize_data(train_X[0:num_train_per_class, :],
@@ -302,7 +302,7 @@ def BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         bp = 1
 
 
-def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
+def basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
     # Input kernel: linear
     # Num hidden layer: 1
@@ -348,7 +348,7 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = GetGrad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1m = W1m * momentum_rate + lr * dJ_dW1 * lr
@@ -370,7 +370,7 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
                        (num_hidden_node, lr, momentum_rate, i, J), fontsize=15)
 
             plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
+            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
             visualize_data(train_X[0:num_train_per_class, :],
@@ -388,7 +388,7 @@ def BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
         bp = 1
 
 
-def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
+def basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
     # Input kernel: linear
     # Num hidden layer: 1
@@ -434,7 +434,7 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = GetGrad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1g = W1g + dJ_dW1 ** 2
@@ -456,7 +456,7 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
                        (num_hidden_node, lr, epsilon, i, J), fontsize=15)
 
             plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
+            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
             visualize_data(train_X[0:num_train_per_class, :],
@@ -525,7 +525,7 @@ def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = GetGrad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1m = beta1 * W1m + (1 - beta1) * dJ_dW1
@@ -563,7 +563,7 @@ def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
                        (num_hidden_node, lr, beta1, beta2, epsilon, i, J), fontsize=15)
 
             plt.subplot(1, 2, 1)
-            [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
+            [grid1, grid2, grid3] = find_decision_boundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
             visualize_data(train_X[0:num_train_per_class, :],
