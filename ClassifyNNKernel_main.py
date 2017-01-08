@@ -1,5 +1,6 @@
 import numpy as np
 from SGD import *
+from Utility import *
 
 rng = np.random.RandomState(1311)
 def create_data(num_sample=None):
@@ -55,27 +56,22 @@ def create_train_val_test(data1, label1, data2, label2, num_train, num_val):
 
     return (train_X, train_Y, val_X, val_Y, test_X, test_Y)
 
-def kernel_preprocess(data1, data2, poly_order):
-    n = data1.shape[0]
-    for i in range(2,poly_order):
-        power1 = i
-        power2 = 0
-        for j in range(0, i+1):
-            data1_new = (data1[:, 0] ** power1).reshape((n, 1))
-            data1 = np.concatenate((data1, data1_new), 1)
-            data2_new = (data2[:, 0] ** power2).reshape((n, 1))
-            data2 = np.concatenate((data2, data2_new), 1)
-            power1 -= 1
-            power2 += 1
 
-    return (data1, data2)
 
 if __name__ == '__main__':
     num_sample = 10
     num_train = 7
     num_val = 3
+
+    config = {}
+    config['demo_type'] = "classifynnkernel"
+    config['save_img'] = False
+    config['num_epoch'] = 1000
+    config['kernel_poly_order'] = 15
+
     (data1, label1, data2, label2) = create_data(num_sample)
-    a = kernel_preprocess(data1, data2, 3)
+    data1 = kernel_preprocess(data1, config['kernel_poly_order'])
+    data2 = kernel_preprocess(data2, config['kernel_poly_order'])
     (train_X, train_Y, val_X, val_Y, test_X, test_Y) = create_train_val_test(data1, label1, data2, label2,
                                                                              num_train, num_val)
 
@@ -89,20 +85,18 @@ if __name__ == '__main__':
     test_X = (test_X - mean_X) / std_X
 
 
-    config = {}
-    config['demo_type'] = "classifynnkernel"
-    config['num_epoch'] = 1000
+
     config['lr'] = 0.8
     config['num_train_per_class'] = num_train
     config['num_hidden_node'] = 2
     config['display_rate'] = 10 # epochs per display time
-    # basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
-    # BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     ### Uncomment the below code blocks to view data
 
