@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pylab
 import time
 import matplotlib.text as plttext
-from SGDClassifyNNDemo import *
+from SGD import *
 # This guy is global
 
 # Create a 2D dataset with 3 labels
@@ -102,22 +102,24 @@ if __name__ == '__main__':
 
 
     config = {}
+    config['demo_type'] = "classifynnsgd"
+    config['save_img'] = False
     config['num_epoch'] = 1000
     config['lr'] = 0.8
     config['num_train_per_class'] = num_train
     config['num_hidden_node'] = 24
     config['display_rate'] = 10 # epochs per display time
-    # BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    # BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
-    # BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['adam_beta1'] = np.asarray(0.9)  # 10^-8
     config['adam_beta2'] = np.asarray(0.999)  # 10^-8
-    BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     ### Uncomment the below code blocks to view data
 
