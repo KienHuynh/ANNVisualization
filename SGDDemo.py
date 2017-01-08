@@ -473,7 +473,7 @@ def BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
 
         bp = 1
 
-def BasicAdaDeltaDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
+def BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     # This is to demonstrate the process of learning a simple one hidden-layer NN
     # Input kernel: linear
     # Num hidden layer: 1
@@ -484,10 +484,13 @@ def BasicAdaDeltaDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     num_epoch = config['num_epoch']
     num_train_per_class = config['num_train_per_class']
     num_hidden_node = config['num_hidden_node']
-    gamma = config['adadelta_gamma']
+    beta1 = config['adam_beta1']
+    beta2 = config['adam_beta2']
+    epsilon = config['ada_epsilon']
     num_train_sample = train_X.shape[0]
     num_feature = train_X.shape[1]
     num_class = train_Y.shape[1]
+    display_rate = config['display_rate']
 
     # Create a weight matrix of shape (2, num_hidden_node)
     W1 = rng.randn(2, num_hidden_node)
@@ -498,15 +501,20 @@ def BasicAdaDeltaDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
     b2 = rng.randn(1, num_class)
 
     # Create accumulative gradient storage
-    W1E = np.zeros_like(W1)
-    b1E = np.zeros_like(b1)
-    W2E = np.zeros_like(W2)
-    b2E = np.zeros_like(b2)
+    W1m = np.zeros_like(W1)
+    b1m = np.zeros_like(b1)
+    W2m = np.zeros_like(W2)
+    b2m = np.zeros_like(b2)
 
+    W1v = np.zeros_like(W1)
+    b1v = np.zeros_like(b1)
+    W2v = np.zeros_like(W2)
+    b2v = np.zeros_like(b2)
 
     num_train_sample = 1
     pylab.ion()
     pylab.show()
+    all_cost = []
     for i in range(0, num_epoch):
         # Calculate the loss
         a1 = np.dot(train_X, W1) + b1
@@ -520,20 +528,41 @@ def BasicAdaDeltaDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = GetGrad(train_X, train_Y, W1, b1, W2, b2)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
-        W1E = gamma * W1E + (1 - gamma) * (dJ_dW1 ** 2)
-        b1E = gamma * b1E + (1 - gamma) * (dJ_db1 ** 2)
-        W2E = gamma * W2E + (1 - gamma) * (dJ_dW2 ** 2)
-        b2E = gamma * b2E + (1 - gamma) * (dJ_db2 ** 2)
+        W1m = beta1 * W1m + (1 - beta1) * dJ_dW1
+        b1m = beta1 * b1m + (1 - beta1) * dJ_db1
+        W2m = beta1 * W2m + (1 - beta1) * dJ_dW2
+        b2m = beta1 * b2m + (1 - beta1) * dJ_db2
+
+        W1v = beta2 * W1v + (1 - beta2) * (dJ_dW1**2)
+        b1v = beta2 * b1v + (1 - beta2) * (dJ_db1**2)
+        W2v = beta2 * W2v + (1 - beta2) * (dJ_dW2**2)
+        b2v = beta2 * b2v + (1 - beta2) * (dJ_db2**2)
+
+        W1m_hat = W1m / (1 - beta1 ** (i + 1))
+        b1m_hat = b1m / (1 - beta1 ** (i + 1))
+        W2m_hat = W2m / (1 - beta1 ** (i + 1))
+        b2m_hat = b2m / (1 - beta1 ** (i + 1))
+
+        W1v_hat = W1v / (1 - beta2 ** (i + 1))
+        b1v_hat = b1v / (1 - beta2 ** (i + 1))
+        W2v_hat = W2v / (1 - beta2 ** (i + 1))
+        b2v_hat = b2v / (1 - beta2 ** (i + 1))
+
+        W1 = W1 - lr * W1m_hat / (np.sqrt(W1v_hat) + epsilon)
+        b1 = b1 - lr * b1m_hat / (np.sqrt(b1v_hat) + epsilon)
+        W2 = W2 - lr * W2m_hat / (np.sqrt(W2v_hat) + epsilon)
+        b2 = b2 - lr * b2m_hat / (np.sqrt(b2v_hat) + epsilon)
 
 
+        all_cost.append(J)
 
-        # W1 = W1 - dJ_dW1 * lr / np.sqrt(W1g + epsilon)
-        # b1 = b1 - dJ_db1 * lr / np.sqrt(b1g + epsilon)
-        # W2 = W2 - dJ_dW2 * lr / np.sqrt(W2g + epsilon)
-        # b2 = b2 - dJ_db2 * lr / np.sqrt(b2g + epsilon)
-
-        if (i % 30 == 0):
+        if (i % display_rate == 0):
             pylab.clf()
+            f = plt.figure(2, figsize=(16, 8))
+            f.suptitle('Adam with %d hidden nodes, learning rate = %.4g, \n beta1 = %.4g, beta2 = %.4g, epsilon = %.4g, %d epoch, cost = %.4g' %
+                       (num_hidden_node, lr, beta1, beta2, epsilon, i, J), fontsize=15)
+
+            plt.subplot(1, 2, 1)
             [grid1, grid2, grid3] = FindDecisionBoundary(train_X, train_Y, W1, b1, W2, b2)
             visualize_decision_grid(grid1, grid2, grid3, 2)
 
@@ -542,9 +571,11 @@ def BasicAdaDeltaDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
                            train_X[num_train_per_class * 2:, :],
                            2)
 
-            f = plt.figure(2)
-            f.suptitle('Adagrad with %d hidden nodes, %d epoch' % (num_hidden_node, i), fontsize=15)
-
+            plt.subplot(1, 2, 2)
+            plt.plot(all_cost, 'b')
+            plt.xlabel('Epoch')
+            plt.ylabel('Cost')
+            f.savefig('giffolder/Adam/Adam_%04d.png' % i, bbox_inches='tight')
             pylab.draw()
 
         bp = 1
