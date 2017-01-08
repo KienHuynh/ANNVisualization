@@ -110,10 +110,14 @@ if __name__ == '__main__':
     # BasicSGDDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # BasicSGDMomentumDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
     # BasicAdagradDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+
+    config['adam_beta1'] = np.asarray(0.9)  # 10^-8
+    config['adam_beta2'] = np.asarray(0.999)  # 10^-8
+    BasicAdamDemo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     ### Uncomment the below code blocks to view data
 
