@@ -20,9 +20,9 @@ def visualize_data(data1, data2, data3, figure_num):
     plt.scatter(data3[:, 0], data3[:, 1], point_size, 'b')
     bp = 1
 
-def numerical_grad_check(X, Y, W1, b1, W2, b2, grad):
+def numerical_grad_check(X, Y, W1, b1, W2, b2, grad, config):
     delta = 0.000005
-
+    activation_function_type = config['activation_function']
     # Check dJ_da2
     # z1 = sigmoid(np.dot(X, W1) + b1)
     # a2 = np.dot(z1, W2) + b2
@@ -143,11 +143,11 @@ def numerical_grad_check(X, Y, W1, b1, W2, b2, grad):
             b1_p[i, j] = b1_p[i, j] + delta
             b1_m[i, j] = b1_m[i, j] - delta
 
-            z1 = sigmoid(np.dot(X, W1) + b1_p)
+            z1 = activation_function(np.dot(X, W1) + b1_p, activation_function_type)
             a2 = np.dot(z1, W2) + b2
             J_p = softmax_log_loss(a2, Y)
 
-            z1 = sigmoid(np.dot(X, W1) + b1_m)
+            z1 = activation_function(np.dot(X, W1) + b1_m, activation_function_type)
             a2 = np.dot(z1, W2) + b2
             J_m = softmax_log_loss(a2, Y)
 
@@ -165,7 +165,7 @@ def find_decision_boundary(X, Y, W1, b1, W2, b2, config):
     num_class = Y.shape[1]
 
     demo_type = config['demo_type']
-
+    activation_function_type = config['activation_function']
     min_X1 = np.min(X[:, 0]) - 0.1
     max_X1 = np.max(X[:, 0]) + 0.1
     min_X2 = np.min(X[:, 1]) - 0.1
@@ -186,7 +186,7 @@ def find_decision_boundary(X, Y, W1, b1, W2, b2, config):
     del yv
 
     a1 = np.dot(X, W1) + b1
-    z1 = sigmoid(a1)
+    z1 = activation_function(a1, activation_function_type)
     a2 = np.dot(z1, W2) + b2
     # pred = np.repeat(np.argmax(a2, 1).reshape((num_fake_data**2, 1)), 2, 1)
     pred = np.argmax(a2, 1)
@@ -210,14 +210,16 @@ def visualize_decision_grid(data1, data2, data3, figure_num):
     bp = 1
 
 
-def get_grad(X, Y, W1, b1, W2, b2):
+def get_grad(X, Y, W1, b1, W2, b2, config):
+    activation_function_type = config['activation_function']
+
     num_train_sample = X.shape[0]
     num_feature = X.shape[1]
     num_hidden_node = W1.shape[1]
     num_class = Y.shape[1]
 
     a1 = np.dot(X, W1) + b1
-    z1 = sigmoid(a1)
+    z1 = activation_function(a1, activation_function_type)
     a2 = np.dot(z1, W2) + b2
 
     # Calculate W2 and b2 gradient
@@ -237,7 +239,7 @@ def get_grad(X, Y, W1, b1, W2, b2):
 
     # Calculate W1 and b1 gradient
     dJ_dz1_dW1 = np.repeat(dJ_dz1.reshape((num_train_sample, 1, num_hidden_node)), num_feature, 1)
-    dz1_da1 = sigmoid(a1, True)
+    dz1_da1 = activation_function(a1, activation_function_type, True)
     dz1_da1_W1 = np.repeat(dz1_da1.reshape((num_train_sample, 1, num_hidden_node)), num_feature, 1)
     da1_dW1 = np.repeat(X.reshape((num_train_sample, num_feature, 1)), num_hidden_node, 2)
     da1_db1 = 1
@@ -352,7 +354,7 @@ def basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2, config)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
         W1 = W1 - dJ_dW1 * lr
         b1 = b1 - dJ_db1 * lr
@@ -415,7 +417,7 @@ def basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, conf
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2, config)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1m = W1m * momentum_rate + lr * dJ_dW1 * lr
@@ -484,7 +486,7 @@ def basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2, config)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1g = W1g + dJ_dW1 ** 2
@@ -559,7 +561,7 @@ def basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config):
         # Doing backprop
         print('[Epoch %d] Train loss: %f' % (i, J))
 
-        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2)
+        dJ_dW1, dJ_db1, dJ_dW2, dJ_db2 = get_grad(train_X, train_Y, W1, b1, W2, b2, config)
         # NumericalGradientCheck(train_X, train_Y, W1, b1, W2, b2, dJ_db1)
 
         W1m = beta1 * W1m + (1 - beta1) * dJ_dW1
