@@ -5,7 +5,7 @@ This is a project dedicated to visualize ANN and its related processes. It is us
 
 ![](img/sgd.gif?raw=true)
 ![](img/sgdm.gif?raw=true)
-![](img/adagrad.gif?raw=true)
+![](img/sgdm-kernel.gif?raw=true)
 
 Main file is ClassifyNN.py
 
