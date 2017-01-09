@@ -2,7 +2,7 @@ import numpy as np
 
 def kernel_preprocess(data, poly_order):
     n = data.shape[0]
-    for i in range(2,poly_order):
+    for i in range(2,poly_order+1):
         power1 = i
         power2 = 0
         for j in range(0, i+1):
