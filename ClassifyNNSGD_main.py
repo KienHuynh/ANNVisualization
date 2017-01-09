@@ -100,7 +100,6 @@ if __name__ == '__main__':
     val_X = (val_X - mean_X) / std_X
     test_X = (test_X - mean_X) / std_X
 
-
     config = {}
     config['demo_type'] = "classifynnsgd"
     config['save_img'] = False
@@ -108,18 +107,19 @@ if __name__ == '__main__':
     config['lr'] = 0.8
     config['num_train_per_class'] = num_train
     config['num_hidden_node'] = 24
+    config['activation_function'] = 'relu'
     config['display_rate'] = 10 # epochs per display time
     # basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    # basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
     # basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['adam_beta1'] = np.asarray(0.9)  # 10^-8
     config['adam_beta2'] = np.asarray(0.999)  # 10^-8
-    basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     ### Uncomment the below code blocks to view data
 
