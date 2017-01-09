@@ -15,8 +15,6 @@ Files:
 - BasicFunction.py: Basic function for ANNs.
 - Utility.py
 
-You can modify params such as num_hidden_node, lr (learning rate), num_sample, etc. to see their affects
-
 Requirements:
 - Python 2.7
 - Numpy http://www.scipy.org/scipylib/download.html
