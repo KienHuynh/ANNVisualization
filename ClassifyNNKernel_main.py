@@ -19,14 +19,15 @@ def create_data(num_sample=None):
         num_sample = 100
 
     # Generate first class
-    m1 = np.asarray([0, 0], dtype=np.float32)
-    cov1 = np.asarray([[0.5, 0], [0, 0.5]], dtype=np.float32)
+    m1 = np.asarray([0.5, 0.5], dtype=np.float32)
+    cov1 = np.asarray([[0.1, 0],
+                       [0, 0.1]], dtype=np.float32)
     data1 = rng.multivariate_normal(m1, cov1, num_sample)
     label1 = np.ones((num_sample), dtype=np.uint16) - 1
     label1 = I[label1,:]
 
     # Generate second class
-    m2 = np.asarray([0.1,0.1], dtype=np.float32)
+    m2 = np.asarray([0.3,0.3], dtype=np.float32)
     cov2 = np.asarray([[0.5, 0], [0, 0.5]], dtype=np.float32)
     data2 = rng.multivariate_normal(m2, cov2, num_sample)
     label2 = np.ones((num_sample), dtype=np.uint16)
@@ -59,16 +60,15 @@ def create_train_val_test(data1, label1, data2, label2, num_train, num_val):
 
 
 if __name__ == '__main__':
-    num_sample = 20
-    num_train = 15
+    num_sample = 7
+    num_train = 4
     num_val = 3
 
     config = {}
     config['demo_type'] = "classifynnkernel"
-    config['save_img'] = False
-    config['num_epoch'] = 1000
-    config['kernel_poly_order'] = 20
-
+    config['save_img'] = True
+    config['num_epoch'] = 10000
+    config['kernel_poly_order'] = 7
     (data1, label1, data2, label2) = create_data(num_sample)
     data1 = kernel_preprocess(data1, config['kernel_poly_order'])
     data2 = kernel_preprocess(data2, config['kernel_poly_order'])
@@ -82,22 +82,22 @@ if __name__ == '__main__':
     val_X = (val_X - mean_X) / std_X
     test_X = (test_X - mean_X) / std_X
 
-    config['lr'] = 0.01
+    config['lr'] = 0.1
     config['num_train_per_class'] = num_train
-    config['num_hidden_node'] = 2
-    config['activation_function'] = 'sigmoid'
-    config['display_rate'] = 10 # epochs per display time
+    config['num_hidden_node'] = 1
+    config['activation_function'] = 'relu'
+    config['display_rate'] = 15 # epochs per display time
     # basic_sgd_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['momentum'] = 0.9
-    # basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    basic_sgd_momentum_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['ada_epsilon'] = np.asarray(0.00000001) # 10^-8
     # basic_adagrad_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     config['adam_beta1'] = np.asarray(0.9)  # 10^-8
     config['adam_beta2'] = np.asarray(0.999)  # 10^-8
-    basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
+    # basic_adam_demo(train_X, train_Y, val_X, val_Y, test_X, test_Y, config)
 
     ### Uncomment the below code blocks to view data
 
