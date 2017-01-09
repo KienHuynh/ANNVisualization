@@ -270,7 +270,7 @@ def train_draw(X, Y, W1, b1, W2, b2, config, all_cost, i, J):
     if (train_method == 'sgdm'):
         momentum_rate = config['momentum']
         title += '\nmomentum rate = %.4g' % momentum_rate
-        f.suptitle(title, fontsize=15)
+        # f.suptitle(title, fontsize=15)
 
     elif (train_method == 'ada'):
         epsilon = config['ada_epsilon']
@@ -298,12 +298,12 @@ def train_draw(X, Y, W1, b1, W2, b2, config, all_cost, i, J):
                    X[num_train_per_class:num_train_per_class * 2, :],
                    X[num_train_per_class * 2:, :],
                    2)
-
-    f.suptitle(title, fontsize=15)
     plt.subplot(1, 2, 2)
     plt.plot(all_cost, 'b')
     plt.xlabel('Epoch')
     plt.ylabel('Cost')
+
+    f.suptitle(title, fontsize=15)
 
     if (save_img):
         save_img_path = 'giffolder/%s/'%train_method
